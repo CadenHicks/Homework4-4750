@@ -1,3 +1,5 @@
+import numpy as np
+
 ROWS = 5
 COLS = 6
 EMPTY = '.'
@@ -6,7 +8,7 @@ O = 'o'
 
 # setup the starting board state
 def initialize_board():
-    board = [[EMPTY for _ in range(COLS)] for _ in range(ROWS)]
+    board = np.full((ROWS, COLS), EMPTY)
     board[2][3] = X # FIRST MOVE
     board[2][2] = O # FIRST MOVE
     
@@ -105,14 +107,6 @@ def count_rows(board, player):
                             mark_mask(i, j, di, dj, 2)
 
     return counts
-
-'''def is_adjacent_empty(board, i, j):
-    directions = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]
-    for di, dj in directions:
-        ni, nj = i + di, j + dj
-        if 0 <= ni < ROWS and 0 <= nj < COLS and board[ni][nj] == EMPTY:
-            return True
-    return False'''
 
 # calls count_rows to determine heuristic value
 def heuristic(board, player, opponent):
