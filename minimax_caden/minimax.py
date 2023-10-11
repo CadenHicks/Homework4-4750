@@ -1,5 +1,5 @@
 import numpy as np
-import math
+import time
 
 ROWS = 5
 COLS = 6
@@ -253,7 +253,6 @@ def getBestMove(board,depth,player,opponet):
 def main():
     print("Board:")
     board = initialize_board() 
-    #board[1][2] = X
     display_board(board)
     #print_heuristic(board, X, O)
 
@@ -264,15 +263,6 @@ def main():
     #             board[i][j] = O
     #             h = heuristic(board,O, X)
     #             print("Heuristic for P2 Move (",i+1,j+1,"):",h)
-
-    #             # for a in range(5) :
-    #             #     for b in range(6) :
-    #             #         if(board[a][b] == EMPTY) :
-    #             #             board[a][b] = O
-    #             #             c = heuristic(board,O,X)
-    #             #             print("Heuristic for P2 Move (",a+1,b+1,"):",c)
-    #             #             board[a][b] = EMPTY
-
     #             board[i][j] = EMPTY
 
     while(movesLeft != False) :
@@ -287,7 +277,7 @@ def main():
             break
 
         board[bestMove[0],bestMove[1]] = X
-        print("Best Move:",bestMove[0],",",bestMove[1])
+        print("Player 1 Move: (",bestMove[0]+1,",",bestMove[1]+1,")")
         print("Board:")
         display_board(board)
 
@@ -304,7 +294,7 @@ def main():
             break
 
         board[bestMove[0],bestMove[1]] = O
-        print("Best Move:",bestMove[0],",",bestMove[1])
+        print("Player 2 Move: (",bestMove[0]+1,",",bestMove[1]+1,")")
         print("Board:")
         display_board(board)
 
@@ -315,4 +305,7 @@ def main():
             break
 
 if __name__ == "__main__":
+    start = time.time()
     main()
+    end = time.time()
+    print("Execution time: ",(end-start)/60)
