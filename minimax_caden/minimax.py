@@ -241,8 +241,8 @@ def getBestMove(board,depth,player,opponet):
             if(board[row][col] == EMPTY) :
                 board[row][col] = player
                 s = minimax(board,depth,False,player,opponet)
-                if(player == O) :
-                    print("Heuristic for P2 Move (",row+1,col+1,"):",s)
+                # if(player == O) :
+                #     print("Heuristic for P2 Move (",row+1,col+1,"):",s)
                 board[row][col] = EMPTY
                 if(s > score) :
                     score = s
