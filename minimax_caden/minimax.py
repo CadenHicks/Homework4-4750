@@ -124,7 +124,7 @@ def heuristic(board, player, opponent):
     # checking for terminal states
     if counts['4-in-a-row'] > 0:
         return 1000
-    if opp_counts['4-in-a-row'] > 0 :
+    if opp_counts['4-in-a-row'] > 0 and player == O:
         return -1000
 
     # calculate heuristic value
