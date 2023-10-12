@@ -1,10 +1,15 @@
 import numpy as np
 from scipy.signal import convolve2d
 from copy import copy
+import time
 from heuristic import *
+
+nodes_generated = 0
 
 def bestMove(state, player):
 
+    global nodes_generated
+    nodes_generated = 0
     # Max utility variable to store the utility of the best move
     max_utility = float('-inf')
     # Array to store the coordinates of the best move
@@ -38,7 +43,7 @@ def bestMove(state, player):
                     max_utility = utility
                     best_move = action
     
-    return best_move, max_utility
+    return best_move
 
 '''
 Performs minimax algorithm (2-ply for P1, 4-ply for P2)
@@ -47,6 +52,7 @@ Returns updated state, move taken, and clock time
 p1_max: Boolean stating if P1 is max
 '''
 def minimax(state, depth, player, p1_max):
+    global nodes_generated
     # If at the leaf nodes, return their heuristic
     if (depth == 0):
         if (player == 1):
@@ -76,6 +82,8 @@ def minimax(state, depth, player, p1_max):
             else:
                 optimal_utility = min(optimal_utility, utility)
 
+        nodes_generated += len(actions)
+
         return optimal_utility
     # If Player2's move, minimize their move's utility
     else:
@@ -98,6 +106,8 @@ def minimax(state, depth, player, p1_max):
                 optimal_utility = min(optimal_utility, utility)
             else:
                 optimal_utility = max(optimal_utility, utility)
+
+        nodes_generated += len(actions)
 
         return optimal_utility
     
@@ -143,12 +153,14 @@ def update_state(state, action, player):
 
 
 def main():
+    global nodes_generated
     # Create blank 5x6 board for state
     # 0: empty
     # 1: P1
     # 2: P2
     state = np.zeros((5,6))
 
+    '''
     # o
     state[1][2] = 2
     state[2][2] = 2
@@ -162,23 +174,34 @@ def main():
     state[3][2] = 1
     state[3][3] = 1
     state[4][2] = 1
+    '''
+
+    state[2][3] = 1
+    state[2][2] = 2
 
     # Count 0's as empty squares
     empty_squares = len(np.array(np.where(state==0)).T)
 
-    print(state)
+    print("Initial state:")
+    display_board(state)
 
     while (True):
         # Player 1 Move
-        best_move, utility = bestMove(state, 1)
+        start_time = time.process_time()
+        best_move = bestMove(state, 1)
+        end_time = time.process_time()
 
         # Update state with player1's move
         state = update_state(state, best_move, 1)
 
-        print(f"Player1 Move: [{best_move[0]}, {best_move[1]}]")
-        print(state)
+        print(f"Player1 Move: [{best_move[0]+1}, {best_move[1]+1}]")
+        print(f"Nodes generated: {nodes_generated}")
+        print(f"CPU Time: {end_time - start_time} (s)")
+        nodes_generated = 0
+        display_board(state)
+        #print(f"{state}\n")
 
-        if (utility == 1000):
+        if (heuristic(state, 1, 2) == 1000):
             print("Player 1 Wins!")
             break
 
@@ -189,15 +212,21 @@ def main():
             empty_squares -= 1
 
         # Player 2 Move
-        best_move, utility = bestMove(state, 2)
+        start_time = time.process_time()
+        best_move = bestMove(state, 2)
+        end_time = time.process_time()
 
         # Update state with player2's move
         state = update_state(state, best_move, 2)
 
-        print(f"Player2 Move: [{best_move[0]}, {best_move[1]}]")
-        print(state)
+        print(f"Player2 Move: [{best_move[0]+1}, {best_move[1]+1}]")
+        print(f"Nodes generated: {nodes_generated}")
+        print(f"CPU Time: {end_time - start_time} (s)")
+        nodes_generated = 0
+        display_board(state)
+        #print(f"{state}\n")
 
-        if (utility == 1000):
+        if (heuristic(state, 2, 1) == 1000):
             print("Player 2 Wins!")
             break
 
@@ -207,9 +236,5 @@ def main():
             break
         else:
             empty_squares -= 1
-
-    print(heuristic(state, 2, 1))
-
-    #minimax(state)
 
 main()

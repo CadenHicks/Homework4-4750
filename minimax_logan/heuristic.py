@@ -27,11 +27,20 @@ def initialize_board():
     
     return board
 
-# Display the board
 def display_board(board):
     print("  1 2 3 4 5 6")
     for i, row in enumerate(board, 1):
-        print(i, ' '.join(row))
+        print(i, ' '.join([translate_cell(cell) for cell in row]))
+    print("\n")
+
+def translate_cell(cell):
+    if cell == X:
+        return 'X'
+    elif cell == O:
+        return 'O'
+    else:
+        return '.'
+
         
 # worker function for the heuristic
 # counts the number of occurrences of each 
