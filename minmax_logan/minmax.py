@@ -1,91 +1,106 @@
 import numpy as np
 from scipy.signal import convolve2d
 from copy import copy
+from heuristic import *
 
-def minimax(state):
+def bestMove(state, player):
 
-    # Get all available moves
-    actions = get_actions(state)
-
-    # Indices of best move
-    best_action = np.zeros(2)
-
-    # Indices of best counter move
-    best_counter = np.zeros(2)
-
-    # Max utility variable to determine the most rewarding move
+    # Max utility variable to store the utility of the best move
     max_utility = float('-inf')
-
-    # Explore each action
+    # Array to store the coordinates of the best move
+    best_move = np.zeros(2)
+    # Get all possible actions for Player1
+    actions = get_actions(state)
+    # Find the maximum utility of all the possible actions
     for action in actions:
+        # Update the state
+        state_post_action = update_state(state, action, player)
+        # Run minimax for 1 more level starting with Player2's move
+        if (player == 1):
+            utility = minimax(state_post_action, 1, 2, True)
+        else:
+            utility = minimax(state_post_action, 3, 1, False)
 
-        # Update state for each action
-        state_post_action = update_state(state, action, 1)
-
-        # Get all possible counter moves from the new state
-        successors = get_actions(state_post_action)
-
-        # Min utility variable to determine the best counter move
-        min_utility = float('inf')
-
-        # Evaluate utility for each successor
-        # Find the move with the lowest heuristic (best countermove)
-        for successor in successors:
-
-            # Update state for each successor action
-            state_post_successor = update_state(state_post_action, successor, 2)
-
-            # Calculate the heuristic of the state after the successor action
-            utility = heuristic(state_post_successor)
-
-            # If the utility is better than the current minimum, update it to the new move/utility
-            if (utility < min_utility) or (utility == min_utility and successor[1] < best_counter[1]) or (utility == min_utility and successor[1] == best_counter[1] and successor[0] < best_counter[0]):
-                best_counter = successor
-                min_utility = utility
-
-        # Once an optimal counter has been found, determine if it is preferable to the current best action's utility
-        if (min_utility > max_utility) or (min_utility == max_utility and action[1] < best_action[1]) or (min_utility == max_utility and action[1] == best_action[1] and action[0] < best_action[0]):
-            best_action = action
-            max_utility = min_utility
-
-    # Apply the best move to the current state
-    state = update_state(state, best_action, 1)
-
-    if (terminal(state)):
-        return
+        # Update the best move
+        if (utility > max_utility):
+            max_utility = utility
+            best_move = action
+        # Tie breaking
+        elif (utility == max_utility):
+            # First, tie break by row
+            if (action[0] < best_move[0]):
+                max_utility = utility
+                best_move = action
+            # If rows are equal, tie break by column
+            elif (action[0] == best_move[0]):
+                # Tie break by column
+                if (action[1] < best_move[1]):
+                    max_utility = utility
+                    best_move = action
     
-    # Apply the best counter move, as well
-    state = update_state(state, best_counter, 2)
+    return best_move, max_utility
 
-    if (terminal(state)):
-        return
+'''
+Performs minimax algorithm (2-ply for P1, 4-ply for P2)
+Returns updated state, move taken, and clock time
+
+p1_max: Boolean stating if P1 is max
+'''
+def minimax(state, depth, player, p1_max):
+    # If at the leaf nodes, return their heuristic
+    if (depth == 0):
+        if (player == 1):
+            return heuristic(state, player, 2)
+        else:
+            return heuristic(state, player, 1)
     
-    # Search for the next move from the updated state
-    print(best_action)
-    print(best_counter)
-    print(state)
-    minimax(state)
+    # If Player1's move, maximize their move's utility
+    if (player == 1):
+        # Max utility variable to determine the most rewarding move
+        if (p1_max == True):
+            optimal_utility = float('-inf')
+        else:
+            optimal_utility = float('inf')
 
-def terminal(state):
-    if (heuristic(state) == 1000 or heuristic(state) == -1000):
-        return True
+        # Get all possible actions for player 1
+        actions = get_actions(state)
+
+        for action in actions:
+            # Update state for each action
+            state_post_action = update_state(state, action, 1)
+            # Find utility of child node, one level deeper
+            utility = minimax(state_post_action, depth-1, 2, p1_max)
+            # Find maximum utility of all child nodes
+            if (p1_max == True):
+                optimal_utility = max(optimal_utility, utility)
+            else:
+                optimal_utility = min(optimal_utility, utility)
+
+        return optimal_utility
+    # If Player2's move, minimize their move's utility
     else:
-        return False
+        # If P1 is maximizing, then P2 should be minimizing
+        if (p1_max == True):
+            optimal_utility = float('inf')
+        else:
+            optimal_utility = float('-inf')
 
-import numpy as np
+        # Get all possible actions for player 2
+        actions = get_actions(state)
 
-# not done
-def heuristic(state):
-    utility = 0
-    for i in state:
-        for j in i:
-            # Horizontal check
-            if (j < 2):
-                if (state[i][j:j+5] == np.array([0,1,1,1,0])):
-                    utility += 200
-            if (j < 3):
-                if (state[i][j:j+4] == np.array([0,1,1,1]) or state[i][j:j+4] == np.array([1,1,1,0])):
-                    utility += 150
+        for action in actions:
+            # Update state for each action
+            state_post_action = update_state(state, action, 2)
+            # Find utility of child node, one level deeper
+            utility = minimax(state_post_action, depth-1, 1, p1_max)
+            # Find maximum utility of all child nodes
+            if (p1_max == True):
+                optimal_utility = min(optimal_utility, utility)
+            else:
+                optimal_utility = max(optimal_utility, utility)
+
+        return optimal_utility
+    
 
 
 def get_actions(state):
@@ -125,6 +140,8 @@ def update_state(state, action, player):
     new_state[*action] = player
     return new_state
 
+
+
 def main():
     # Create blank 5x6 board for state
     # 0: empty
@@ -146,9 +163,52 @@ def main():
     state[3][3] = 1
     state[4][2] = 1
 
-    print(state)
-    print(state[1][0:0+5])
+    # Count 0's as empty squares
+    empty_squares = len(np.array(np.where(state==0)).T)
 
+    print(state)
+
+    while (True):
+        # Player 1 Move
+        best_move, utility = bestMove(state, 1)
+
+        # Update state with player1's move
+        state = update_state(state, best_move, 1)
+
+        print(f"Player1 Move: [{best_move[0]}, {best_move[1]}]")
+        print(state)
+
+        if (utility == 1000):
+            print("Player 1 Wins!")
+            break
+
+        if ((empty_squares - 1) == 0):
+            print("It's a Draw!")
+            break
+        else:
+            empty_squares -= 1
+
+        # Player 2 Move
+        best_move, utility = bestMove(state, 2)
+
+        # Update state with player2's move
+        state = update_state(state, best_move, 2)
+
+        print(f"Player2 Move: [{best_move[0]}, {best_move[1]}]")
+        print(state)
+
+        if (utility == 1000):
+            print("Player 2 Wins!")
+            break
+
+        # If no one has one but the board is full, it's a draw
+        if ((empty_squares - 1) == 0):
+            print("It's a Draw!")
+            break
+        else:
+            empty_squares -= 1
+
+    print(heuristic(state, 2, 1))
 
     #minimax(state)
 
