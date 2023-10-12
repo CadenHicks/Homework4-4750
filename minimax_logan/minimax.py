@@ -147,7 +147,7 @@ def update_state(state, action, player):
     - state with the value updated at [x, y]
     '''
     new_state = state.copy()
-    new_state[*action] = player
+    new_state[action[0]][action[1]] = player
     return new_state
 
 
@@ -184,6 +184,8 @@ def main():
 
     print("Initial state:")
     display_board(state)
+
+    start_run_time = time.process_time()
 
     while (True):
         # Player 1 Move
@@ -236,5 +238,9 @@ def main():
             break
         else:
             empty_squares -= 1
+    
+    end_run_time = time.process_time()
+
+    print(f"Total Run Time: {end_run_time - start_run_time} (s)")
 
 main()
